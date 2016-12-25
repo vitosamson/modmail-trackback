@@ -49,6 +49,21 @@ const headers = {
 };
 
 /**
+ * Check how many requests we still have after each modmail fetch
+ * @param  {Object} res Response from request-promise
+ * @return {Object}     The body of the response
+ */
+function checkRemainingRateLimit(res: Object): Object {
+  try {
+    const { headers, body } = res;
+    console.log(`Rate limit remaining: ${headers['x-ratelimit-remaining']}`);
+    return body;
+  } catch (err) {
+    throw err;
+  }
+}
+
+/**
  * Gets the OAuth access token using the username, password, app id and secret provided via env vars.
  * Sets the Authorization header after the access token has been successfully retrieved.
  * @return {Promise<string>}
@@ -89,7 +104,8 @@ async function getModmail(): Promise<ModmailResponse> {
     uri: `${apiBaseUrl}/mod/conversations?entity=${subreddit || ''}`,
     json: true,
     headers,
-  });
+    resolveWithFullResponse: true,
+  }).then(checkRemainingRateLimit);
 }
 
 /**
@@ -102,7 +118,8 @@ async function getModmailOld(): Promise<ModmailResponse> {
     method: 'GET',
     json: true,
     headers,
-  });
+    resolveWithFullResponse: true,
+  }).then(checkRemainingRateLimit);
 
   const { children } = res.data;
   const conversations = {};
@@ -229,20 +246,22 @@ export async function run(): Promise<void> {
     const { conversations, messages } = await getModmail();
     const unreadConversations = filterUnreadConversations(conversations);
 
-    await Promise.all(unreadConversations.map(convo => {
+    await Promise.all(unreadConversations.map(async convo => {
       const msgId = convo.objIds[0].id;
       const submissionLink = getSubmissionLinkFromModmail(messages[msgId]);
       console.log(`Processing submission ${submissionLink}`);
 
-      return addTrackbackLinkComment(convo.id, submissionLink).then(commentId => {
-        console.log(`Added trackback comment`);
-        return removeTrackbackLinkComment(commentId);
-      }).then(() => {
-        console.log(`Removed trackback comment`);
-        return markAsRead(convo.id);
-      }).catch(err => {
-        console.error(`Could not process modmail ${convo.id}`, err);
-      });
+      try {
+        const commentId = await addTrackbackLinkComment(convo.id, submissionLink);
+        console.log('Added trackback comment');
+        await removeTrackbackLinkComment(commentId);
+        console.log('Removed trackback comment');
+        await markAsRead(convo.id);
+        console.log('Marked conversation as read');
+      } catch (err) {
+        console.error(`Could not process modmail ${convo.id} for submission ${submissionLink}`);
+        console.error(inspect(err));
+      }
     }));
 
     console.log('All done!');
