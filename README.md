@@ -17,3 +17,4 @@ If you have `yarn` installed, run `yarn install` to install the dependencies. Ot
 | `APP_ID` | the app id that reddit gives you when you create a new developer app | yes | |
 | `APP_SECRET` | the app secret that reddit gives you when you create a new developer app | yes | |
 | `INTERVAL` | the interval (in minutes) that the script should check for new submissions | no | 5 |
+| `SUBREDDIT` | the name of the subreddit that should be checked for submissions | yes | |
