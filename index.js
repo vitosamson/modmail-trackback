@@ -1,2 +1,5 @@
 require('babel-register');
-require('./src').start();
+
+const { startWorker, startServer } = require('./src');
+startServer();
+startWorker();
