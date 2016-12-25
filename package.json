@@ -1,0 +1,28 @@
+{
+  "name": "modmail-trackback",
+  "version": "0.1.0",
+  "description": "Embeds a link to the modmail discussion for new submissions",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vitosamson/modmail-trackback.git"
+  },
+  "author": "Vito <vito@vitosamson.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vitosamson/modmail-trackback/issues"
+  },
+  "homepage": "https://github.com/vitosamson/modmail-trackback#readme",
+  "dependencies": {
+    "babel-plugin-transform-async-to-generator": "^6.16.0",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.18.0",
+    "babel-plugin-transform-flow-strip-types": "^6.21.0",
+    "babel-register": "^6.18.0",
+    "flow-bin": "^0.37.4",
+    "request": "^2.79.0",
+    "request-promise": "^4.1.1"
+  }
+}
