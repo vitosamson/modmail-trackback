@@ -59,7 +59,8 @@ function checkRemainingRateLimit(res: Object): Object {
     console.log(`Rate limit remaining: ${headers['x-ratelimit-remaining']}`);
     return body;
   } catch (err) {
-    throw err;
+    console.error('Could not parse remaining rate limit', inspect(err));
+    return res;
   }
 }
 
