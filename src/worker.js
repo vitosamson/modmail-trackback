@@ -40,6 +40,7 @@ const password = process.env.PASS;
 const appId = process.env.APP_ID;
 const appSecret = process.env.APP_SECRET;
 const subreddit = process.env.SUBREDDIT;
+const useOldModmail = process.env.USE_OLD_MODMAIL === 'true'; // env vars are strings
 
 const apiBaseUrl = 'https://oauth.reddit.com/api';
 const headers = {
@@ -82,6 +83,8 @@ async function getAccessToken(): Promise<string> {
  * @return {Promise<ModmailResponse>}
  */
 async function getModmail(): Promise<ModmailResponse> {
+  if (useOldModmail) return getModmailOld();
+
   return await rp({
     uri: `${apiBaseUrl}/mod/conversations?entity=${subreddit || ''}`,
     json: true,
@@ -90,15 +93,66 @@ async function getModmail(): Promise<ModmailResponse> {
 }
 
 /**
+ * Gets the modmail for a subreddit using the old modmail system
+ * @return {Promise<ModmailResponse>}
+ */
+async function getModmailOld(): Promise<ModmailResponse> {
+  const res = await rp({
+    uri: `https://oauth.reddit.com/r/${subreddit || ''}/about/message/moderator?raw_json=1`,
+    method: 'GET',
+    json: true,
+    headers,
+  });
+
+  const { children } = res.data;
+  const conversations = {};
+  const messages = {};
+
+  children.forEach(({ data: child }) => {
+    conversations[child.id] = {
+      objIds: [{
+        id: child.id,
+        key: 'messages',
+      }],
+      lastUnread: child.new ? 'unread' : null,
+    };
+
+    messages[child.id] = {
+      bodyMarkdown: child.body,
+    }
+  });
+
+  return { conversations, messages };
+}
+
+/**
  * Marks the modmail thread as read for the bot user
  * @param  {string}  convoId Modmail conversation ID
  * @return {Promise}
  */
 async function markAsRead(convoId: string): Promise<void> {
+  if (useOldModmail) return markAsReadOld(convoId);
+
   return await rp({
     uri: `${apiBaseUrl}/mod/conversations/read?conversationIds=${convoId}`,
     method: 'POST',
     headers,
+  });
+}
+
+/**
+ * Marks the modmail thread as read for subreddits using the old modmail system
+ * @param  {string}  convoId Modmail conversation ID
+ * @return {Promise}
+ */
+async function markAsReadOld(convoId: string): Promise<void> {
+  return await rp({
+    uri: 'https://oauth.reddit.com/api/read_message',
+    method: 'POST',
+    headers,
+    form: {
+      id: `t4_${convoId}`,
+    },
   });
 }
 
