@@ -12,7 +12,7 @@ const port = process.env.PORT || 5000;
 /**
  * Provides a simple server that can be used to make sure the process is still running.
  */
-export function startServer() {
+function startServer() {
   const server = http.createServer((req, res) => {
     res.statusCode = 200;
     res.end();
@@ -24,7 +24,10 @@ export function startServer() {
 /**
  * Runs the worker and then schedules it to be run again after the specified interval.
  */
-export function startWorker() {
+function startWorker() {
   console.log(`Running every ${interval} minutes`);
   run().catch(() => {}).then(() => setTimeout(startWorker, interval * 60 * 1000));
 }
+
+startServer();
+startWorker();
