@@ -198,11 +198,11 @@ async function addTrackbackLinkComment(convoId: string, submissionLink: string):
       thing_id: `t3_${submissionId}`,
       text: `Here's a link to the modmail thread associated with this post:
 
-      ${commentLink}
+${commentLink}
 
-      ----
+----
 
-      I'm a bot. If I am malfunctioning please contact /u/vs845`,
+I'm a bot. If I am malfunctioning please contact /u/vs845.`,
       api_type: 'json',
     },
   });
