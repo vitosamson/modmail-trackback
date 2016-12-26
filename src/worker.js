@@ -185,6 +185,10 @@ async function markAsReadOld(convoId: string): Promise<void> {
 async function addTrackbackLinkComment(convoId: string, submissionLink: string): Promise<string> {
   const submissionId = submissionLink.split('reddit.com/')[1].split('/')[3];
 
+  const commentLink = useOldModmail ?
+    `https://www.reddit.com/message/messages/${convoId}` :
+    `https://mod.reddit.com/mail/all/${convoId}`;
+
   const res: CommentResponse = await rp({
     method: 'POST',
     uri: `${apiBaseUrl}/comment`,
@@ -192,7 +196,13 @@ async function addTrackbackLinkComment(convoId: string, submissionLink: string):
     json: true,
     form: {
       thing_id: `t3_${submissionId}`,
-      text: `Modmail thread: https://mod.reddit.com/mail/all/${convoId}`,
+      text: `Here's a link to the modmail thread associated with this post:
+
+      ${commentLink}
+
+      ----
+
+      I'm a bot. If I am malfunctioning please contact /u/vs845`,
       api_type: 'json',
     },
   });
