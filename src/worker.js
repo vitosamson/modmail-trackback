@@ -39,7 +39,7 @@ const username = process.env.USER;
 const password = process.env.PASS;
 const appId = process.env.APP_ID;
 const appSecret = process.env.APP_SECRET;
-const subreddit = process.env.SUBREDDIT;
+const subreddit = process.env.SUBREDDIT || '';
 const useOldModmail = process.env.USE_OLD_MODMAIL === 'true'; // env vars are strings
 
 const apiBaseUrl = 'https://oauth.reddit.com/api';
@@ -102,7 +102,7 @@ async function getModmail(): Promise<ModmailResponse> {
   if (useOldModmail) return getModmailOld();
 
   return await rp({
-    uri: `${apiBaseUrl}/mod/conversations?entity=${subreddit || ''}`,
+    uri: `${apiBaseUrl}/mod/conversations?entity=${subreddit}`,
     json: true,
     headers,
     resolveWithFullResponse: true,
@@ -115,7 +115,7 @@ async function getModmail(): Promise<ModmailResponse> {
  */
 async function getModmailOld(): Promise<ModmailResponse> {
   const res = await rp({
-    uri: `https://oauth.reddit.com/r/${subreddit || ''}/about/message/moderator?raw_json=1`,
+    uri: `https://oauth.reddit.com/r/${subreddit}/about/message/moderator?raw_json=1`,
     method: 'GET',
     json: true,
     headers,
@@ -128,6 +128,7 @@ async function getModmailOld(): Promise<ModmailResponse> {
 
   children.forEach(({ data: child }) => {
     conversations[child.id] = {
+      id: child.id,
       objIds: [{
         id: child.id,
         key: 'messages',
@@ -136,8 +137,9 @@ async function getModmailOld(): Promise<ModmailResponse> {
     };
 
     messages[child.id] = {
+      id: child.id,
       bodyMarkdown: child.body,
-    }
+    };
   });
 
   return { conversations, messages };
@@ -254,7 +256,7 @@ export async function run(): Promise<void> {
 
       try {
         const commentId = await addTrackbackLinkComment(convo.id, submissionLink);
-        console.log('Added trackback comment');
+        console.log('Added trackback comment, id:', commentId);
         await removeTrackbackLinkComment(commentId);
         console.log('Removed trackback comment');
         await markAsRead(convo.id);
